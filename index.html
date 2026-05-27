@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>学习研究平台</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+    :root {
+      --bg:          #fdf6ec;
+      --surface:     #fff8f0;
+      --border:      #d4a96a;
+      --border-dark: #a0724a;
+      --accent:      #e07b39;
+      --accent-dark: #b85c1e;
+      --accent-light:#f5c49a;
+      --text:        #3d2b1f;
+      --text-light:  #7a5c42;
+      --user-bubble: #fde8d0;
+      --ai-bubble:   #fff3e6;
+      --shadow:      4px 4px 0px #a0724a;
+      --disabled:    #c8b8a8;
+      --disabled-bg: #ede0d4;
+      --pixel:       2px;
+      --green:       #27ae60;
+      --green-light: #eafaf1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'VT323', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-image: radial-gradient(circle, #d4a96a22 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* ── 角落装饰 ── */
+    .pixel-corner { position: fixed; width: 12px; height: 12px; background: var(--accent-light); border: 2px solid var(--border); z-index: 10; }
+    .pixel-corner.tl { top:8px; left:8px; }
+    .pixel-corner.tr { top:8px; right:8px; }
+    .pixel-corner.bl { bottom:8px; left:8px; }
+    .pixel-corner.br { bottom:8px; right:8px; }
+
+    /* ── 居中卡片 ── */
+    .center-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--surface);
+      border: var(--pixel) solid var(--border-dark);
+      box-shadow: var(--shadow);
+      padding: 40px 44px;
+      max-width: 480px;
+      width: calc(100% - 48px);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      animation: popIn 0.2s steps(4) forwards;
+    }
+    @keyframes popIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    .card-logo { display: flex; align-items: center; gap: 14px; }
+    .card-logo h1 { font-family: 'Press Start 2P', monospace; font-size: 20px; color: var(--accent-dark); line-height: 1.8; }
+
+    .field-label { font-family: 'Press Start 2P', monospace; font-size: 16px; color: var(--accent); letter-spacing: 1px; margin-bottom: -8px; }
+
+    .text-input-field {
+      font-family: 'Press Start 2P', monospace; font-size: 22px; /*changed from 16px to 22px*/
+      padding: 14px 16px; border: var(--pixel) solid var(--border-dark);
+      background: #fff; color: var(--text); width: 100%; outline: none;
+      letter-spacing: 4px; text-transform: uppercase;
+    }
+    .text-input-field:focus { border-color: var(--accent); box-shadow: 2px 2px 0 var(--accent); }
+    .text-input-field::placeholder { color: var(--disabled); letter-spacing: 1px; font-size: 10px; }
+
+    .btn-primary {
+      font-family: 'VT323', monospace; font-size: 22px; padding: 16px;
+      background: var(--accent); color: #fff; border: none;
+      border-bottom: 4px solid var(--accent-dark); cursor: pointer; letter-spacing: 1px;
+      width: 100%;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-dark); }
+    .btn-primary:active:not(:disabled) { transform: translateY(3px); border-bottom-width: 1px; }
+    .btn-primary:disabled { background: var(--disabled); cursor: not-allowed; border-bottom-color: #999; }
+
+    .error-msg { font-size: 16px; color: #c0392b; display: none; text-align: center; line-height: 1.5; }
+    .hint-text  { font-size: 15px; color: var(--text-light); text-align: center; line-height: 1.7; }
+
+    /* ══════════════════════════════════════════
+       PAGE：Choose Group
+    ══════════════════════════════════════════ */
+    #group-screen { display: none; }
+
+    .group-prompt {
+      font-size: 22px;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+
+    .group-btns {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .btn-group {
+      flex: 1;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 18px;
+      padding: 28px 16px;
+      border: var(--pixel) solid var(--border-dark);
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.4;
+      transition: background 0.1s, transform 0.1s;
+    }
+
+    .btn-group-a {
+      background: #fff8f0;
+      color: var(--accent-dark);
+      border: var(--pixel) solid var(--border-dark);
+      border-bottom: 5px solid var(--border-dark);
+      box-shadow: var(--shadow);
+    }
+    .btn-group-a:hover { background: var(--accent-light); }
+    .btn-group-a:active { transform: translateY(3px); border-bottom-width: 2px; }
+
+    .btn-group-b {
+      background: #fde8d0;
+      color: var(--accent-dark);
+      border: var(--pixel) solid var(--border-dark);
+      border-bottom: 5px solid var(--border-dark);
+      box-shadow: var(--shadow);
+    }
+    .btn-group-b:hover { background: var(--accent-light); }
+    .btn-group-b:active { transform: translateY(3px); border-bottom-width: 2px; }
+    
+    /* ══════════════════════════════════════════
+       PAGE：Main Chat Interface
+    ══════════════════════════════════════════ */
+    #chat-screen { display: none; flex-direction: column; width: 100%; min-height: 100vh; }
+
+    .main-header {
+      width: 100%; padding: 16px 28px;
+      display: flex; align-items: center; gap: 14px;
+      border-bottom: var(--pixel) solid var(--border);
+      background: var(--surface);
+      position: sticky; top: 0; z-index: 5;
+    }
+    .header-text h1 { font-family: 'Press Start 2P', monospace; font-size: 28px; color: var(--accent-dark); line-height: 1.6; }
+    .header-text p  { font-size: 20px; color: var(--text-light); margin-top: 2px; }
+
+    .pid-badge {
+      margin-left: auto;
+      font-family: 'Press Start 2P', monospace; font-size: 7px;
+      background: var(--accent-light); border: var(--pixel) solid var(--border-dark);
+      padding: 7px 11px; color: var(--accent-dark); white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* 两栏布局 */
+    .two-col {
+      display: flex; flex: 1; width: 100%;
+      min-height: calc(100vh - 68px);
+    }
+
+    .panel-left {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column;
+      padding: 20px 20px 20px 28px;
+      border-right: var(--pixel) solid var(--border-dark);
+    }
+
+    .panel-right {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column;
+      padding: 20px 28px 20px 20px;
+      background: #fffbf5;
+    }
+
+    .panel-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 16px; color: var(--accent); letter-spacing: 1px; margin-bottom: 10px;
+    }
+
+    /* 任务卡片 */
+    .task-card {
+      background: var(--surface);
+      border: var(--pixel) solid var(--border-dark);
+      box-shadow: var(--shadow);
+      padding: 14px 18px; margin-bottom: 14px;
+    }
+    .task-card p { font-size: 17px; line-height: 1.75; color: var(--text); }
+
+    /* 聊天窗口 */
+    .chat-window {
+      flex: 1; background: var(--surface);
+      border: var(--pixel) solid var(--border-dark);
+      box-shadow: var(--shadow);
+      min-height: 200px; max-height: 400px;
+      overflow-y: auto; padding: 14px;
+      display: flex; flex-direction: column; gap: 12px;
+      scrollbar-width: thin; scrollbar-color: var(--border) var(--bg);
+      margin-bottom: 12px;
+    }
+    .chat-window::-webkit-scrollbar { width: 8px; }
+    .chat-window::-webkit-scrollbar-track { background: var(--bg); }
+    .chat-window::-webkit-scrollbar-thumb { background: var(--border); border: 2px solid var(--bg); }
+
+    .chat-empty {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 10px; color: var(--text-light); font-size: 18px; opacity: 0.7;
+    }
+    .chat-empty .pixel-icon { font-size: 28px; animation: blink 1.2s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .msg { display: flex; gap: 10px; align-items: flex-start; animation: popIn 0.15s steps(3) forwards; }
+    .msg.user { flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 28px; height: 28px;
+      border: var(--pixel) solid var(--border-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0; background: var(--accent-light);
+    }
+    .msg.ai .msg-avatar { background: #fde8d0; }
+    .msg-bubble {
+      max-width: 80%; padding: 9px 13px;
+      font-size: 17px; line-height: 1.6;
+      border: var(--pixel) solid var(--border); position: relative;
+    }
+    .msg.user .msg-bubble { background: var(--user-bubble); border-color: var(--accent); }
+    .msg.ai   .msg-bubble { background: var(--ai-bubble);   border-color: var(--border-dark); }
+    .msg.user .msg-bubble::after { content:''; position:absolute; right:-6px; top:8px; width:4px; height:4px; background:var(--accent); }
+    .msg.ai   .msg-bubble::after { content:''; position:absolute; left:-6px;  top:8px; width:4px; height:4px; background:var(--border-dark); }
+
+    .typing-dots span { display:inline-block; animation:dot-bounce 1s steps(1) infinite; font-size:20px; }
+    .typing-dots span:nth-child(2) { animation-delay:.25s; }
+    .typing-dots span:nth-child(3) { animation-delay:.5s; }
+    @keyframes dot-bounce { 0%,100%{opacity:0.2} 50%{opacity:1} }
+
+    /* 计数区 */
+    .counter-bar { display:flex; align-items:center; gap:8px; font-size:15px; color:var(--text-light); margin-bottom:6px; }
+    .counter-pips { display:flex; gap:4px; flex-wrap: wrap; }
+    .pip { width:11px; height:11px; border:var(--pixel) solid var(--border-dark); background:var(--accent); transition:background 0.2s; }
+    .pip.used { background:var(--disabled); border-color:var(--disabled); }
+
+    #status-bar { display:none; font-size:13px; padding:5px 8px; border:var(--pixel) solid #c0392b; background:#fdecea; color:#c0392b; margin-bottom:6px; }
+
+    /* 聊天输入 */
+    .input-row { display:flex; border:var(--pixel) solid var(--border-dark); box-shadow:var(--shadow); background:#fff; }
+    #user-input {
+      flex:1; padding:10px 12px;
+      font-family:'VT323',monospace; font-size:17px; color:var(--text);
+      background:#fff; border:none; outline:none; resize:none;
+      min-height:52px; max-height:120px;
+    }
+    #user-input::placeholder { color:var(--text-light); opacity:0.6; }
+    #user-input:disabled { background:var(--disabled-bg); cursor:not-allowed; }
+
+    #submit-btn {
+      font-family:'VT323',monospace; font-size:20px;
+      padding:0 18px; background:var(--accent); color:#fff;
+      border:none; border-left:var(--pixel) solid var(--border-dark);
+      cursor:pointer; text-align:center; min-width:90px;
+      white-space:normal; word-break:break-word; line-height:1.4;
+    }
+    #submit-btn:hover:not(:disabled) { background:var(--accent-dark); }
+    #submit-btn:active:not(:disabled) { transform:translate(2px,2px); }
+    #submit-btn:disabled { background:var(--disabled); cursor:not-allowed; }
+
+    /* ── 右侧论文区 ── */
+    .essay-instruction {
+      background: var(--surface);
+      border: var(--pixel) solid var(--border-dark);
+      box-shadow: var(--shadow);
+      padding: 14px 16px; margin-bottom: 12px;
+    }
+    .essay-instruction .inst-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px; color: var(--accent-dark); margin-bottom: 10px;
+    }
+    .essay-instruction p { font-size: 16px; line-height: 1.75; color: var(--text); }
+    .word-req {
+      display: inline-block; margin-top: 10px;
+      font-size: 16px; font-family: 'VT323', monospace;
+      background: var(--accent-light);
+      border: 1px solid var(--border-dark);
+      padding: 4px 10px; color: var(--accent-dark);
+    }
+
+    .word-count-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px; font-size: 15px; color: var(--text-light);
+    }
+    #word-count { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--accent); }
+    #word-count.ok { color: var(--green); }
+
+    #essay-area {
+      flex: 1; width: 100%; min-height: 260px;
+      padding: 14px; font-family: 'VT323', monospace; font-size: 17px;
+      line-height: 1.7; color: var(--text); background: #fff;
+      border: var(--pixel) solid var(--border-dark);
+      box-shadow: var(--shadow); outline: none; resize: vertical;
+      margin-bottom: 10px;
+    }
+    #essay-area::placeholder { color: var(--text-light); opacity: 0.5; }
+    #essay-area:focus { border-color: var(--accent); }
+    #essay-area:disabled { background: var(--disabled-bg); cursor: not-allowed; }
+
+    .essay-btns { display: flex; gap: 10px; }
+
+    /*Save and Submission Buttons*/
+
+    .btn-save, .btn-submit-essay {
+      flex: 1;
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      padding: 14px 10px;
+      border: none; cursor: pointer;
+      text-align: center; line-height: 1.4;
+    }
+    .btn-save {
+      background: #fff; color: var(--accent-dark);
+      border: var(--pixel) solid var(--border-dark);
+      box-shadow: 3px 3px 0 var(--border);
+    }
+    .btn-save:hover:not(:disabled) { background: var(--accent-light); }
+    .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-submit-essay {
+      background: var(--accent); color: #fff;
+      border-bottom: 4px solid var(--accent-dark);
+    }
+    .btn-submit-essay:hover:not(:disabled) { background: var(--accent-dark); }
+    .btn-submit-essay:active:not(:disabled) { transform: translateY(3px); border-bottom-width: 1px; }
+    .btn-submit-essay:disabled { background: var(--disabled); cursor: not-allowed; border-bottom-color: var(--disabled); }
+
+    #essay-status { margin-top: 8px; font-size: 15px; min-height: 20px; text-align: center; }
+    #essay-status.success { color: var(--green); }
+    #essay-status.error   { color: #c0392b; }
+
+    /* 返回选组按钮 */
+    #btn-back-home {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      padding: 6px 14px;
+      background: #fff;
+      color: var(--text-light);
+      border: var(--pixel) solid var(--border);
+      cursor: pointer;
+      margin-left: 12px;
+      flex-shrink: 0;
+      transition: background 0.1s;
+    }
+    #btn-back-home:hover { background: var(--accent-light); color: var(--accent-dark); border-color: var(--border-dark); }
+
+    footer {
+      width: 100%; text-align: center; padding: 14px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px; color: var(--text-light); opacity: 0.4;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ══════════════════════════════════════════
+       弹窗：字数不足
+    ══════════════════════════════════════════ */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: var(--surface);
+      border: var(--pixel) solid var(--border-dark);
+      box-shadow: 8px 8px 0 var(--border-dark);
+      padding: 40px 44px;
+      max-width: 460px; width: calc(100% - 48px);
+      text-align: center;
+      animation: popIn 0.15s steps(3) forwards;
+    }
+    .modal-icon  { font-size: 48px; margin-bottom: 16px; }
+    .modal-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px; color: var(--accent-dark);
+      line-height: 1.7; margin-bottom: 16px;
+    }
+    .modal-body  { font-size: 20px; line-height: 1.75; color: var(--text); margin-bottom: 28px; }
+    .modal-btn   {
+      font-family: 'Press Start 2P', monospace; font-size: 8px;
+      padding: 14px 28px; background: var(--accent); color: #fff;
+      border: none; border-bottom: 4px solid var(--accent-dark); cursor: pointer;
+    }
+    .modal-btn:hover { background: var(--accent-dark); }
+
+    /* ══════════════════════════════════════════
+       提交成功全屏页
+    ══════════════════════════════════════════ */
+    #success-screen {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 40px;
+      background-image: radial-gradient(circle, #d4a96a33 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .success-icon  { font-size: 80px; margin-bottom: 28px; animation: bounceIn 0.4s steps(4) forwards; }
+    @keyframes bounceIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+    .success-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 20px; color: var(--green);
+      line-height: 1.7; margin-bottom: 20px;
+    }
+    .success-sub   { font-size: 28px; color: var(--text-light); line-height: 1.6; max-width: 500px; }
+  </style>
+</head>
+<body>
+
+<div class="pixel-corner tl"></div>
+<div class="pixel-corner tr"></div>
+<div class="pixel-corner bl"></div>
+<div class="pixel-corner br"></div>
+
+<!-- ══════════════════════════════════════════
+     登录页
+══════════════════════════════════════════ -->
+<div id="login-screen" class="center-screen">
+  <div class="card">
+    <div class="card-logo">
+      <svg width="36" height="36" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;flex-shrink:0">
+        <rect x="6" y="0"  width="4" height="2" fill="#e07b39"/>
+        <rect x="4" y="2"  width="8" height="2" fill="#e07b39"/>
+        <rect x="2" y="4"  width="12" height="2" fill="#c85c1e"/>
+        <rect x="0" y="6"  width="16" height="4" fill="#e07b39"/>
+        <rect x="2" y="10" width="12" height="2" fill="#c85c1e"/>
+        <rect x="4" y="12" width="8" height="2" fill="#e07b39"/>
+        <rect x="6" y="14" width="4" height="2" fill="#e07b39"/>
+        <rect x="5" y="3"  width="3" height="2" fill="#f5c49a" opacity="0.6"/>
+      </svg>
+      <h1>学习研究平台</h1>
+    </div>
+    <div class="field-label">▶ 参与者编号</div>
+    <input id="pid-input" class="text-input-field" type="text" maxlength="6"
+      placeholder="例如  P001" autocomplete="off" spellcheck="false"/>
+    <button id="login-btn" class="btn-primary">输入编号</button>
+    <div id="login-error" class="error-msg"></div>
+    <p class="hint-text">请输入研究人员提供的参与者编号</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     选组页
+══════════════════════════════════════════ -->
+<div id="group-screen" class="center-screen">
+  <div class="card" style="max-width:520px">
+    <div class="card-logo">
+      <svg width="32" height="32" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;flex-shrink:0">
+        <rect x="6" y="0"  width="4" height="2" fill="#e07b39"/>
+        <rect x="4" y="2"  width="8" height="2" fill="#e07b39"/>
+        <rect x="2" y="4"  width="12" height="2" fill="#c85c1e"/>
+        <rect x="0" y="6"  width="16" height="4" fill="#e07b39"/>
+        <rect x="2" y="10" width="12" height="2" fill="#c85c1e"/>
+        <rect x="4" y="12" width="8" height="2" fill="#e07b39"/>
+        <rect x="6" y="14" width="4" height="2" fill="#e07b39"/>
+      </svg>
+      <h1 style="font-size:8px">选择组别</h1>
+    </div>
+    <p class="group-prompt">请根据研究人员给定的信息，<br>选择以下其中之一的组别：</p>
+    <div class="group-btns">
+      <button class="btn-group btn-group-a" id="btn-group-a">A组</button>
+      <button class="btn-group btn-group-b" id="btn-group-b">B组</button>
+    </div>
+    <div id="group-error" class="error-msg"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     主聊天界面
+══════════════════════════════════════════ -->
+<div id="chat-screen">
+  <div class="main-header">
+    <svg width="34" height="34" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated;flex-shrink:0">
+      <rect x="6" y="0"  width="4" height="2" fill="#e07b39"/>
+      <rect x="4" y="2"  width="8" height="2" fill="#e07b39"/>
+      <rect x="2" y="4"  width="12" height="2" fill="#c85c1e"/>
+      <rect x="0" y="6"  width="16" height="4" fill="#e07b39"/>
+      <rect x="2" y="10" width="12" height="2" fill="#c85c1e"/>
+      <rect x="4" y="12" width="8" height="2" fill="#e07b39"/>
+      <rect x="6" y="14" width="4" height="2" fill="#e07b39"/>
+    </svg>
+    <div class="header-text">
+      <h1>学习研究平台</h1>
+      <p>人机协作</p>
+    </div>
+    <div class="pid-badge" id="pid-badge">参与者：—</div>
+    <button id="btn-back-home" title="返回选组">← 返回</button>
+  </div>
+
+  <div class="two-col">
+    <!-- 左栏：AI 对话 -->
+    <div class="panel-left">
+      <div class="panel-label">▶ 人机协作对话空间</div>
+
+      <div class="task-card">
+        <p id="task-text"></p>
+      </div>
+
+      <div class="chat-window" id="chat-window">
+        <div class="chat-empty" id="chat-empty">
+          <span class="pixel-icon">▦</span>
+          <span>输入你的问题开始对话</span>
+        </div>
+      </div>
+
+      <!-- 次数计数（B 组显示，A 组隐藏）-->
+      <div class="counter-bar" id="counter-bar" style="display:none">
+        <span>剩余次数：</span>
+        <div class="counter-pips" id="pips"></div>
+        <span id="count-label"></span>
+      </div>
+
+      <div id="status-bar"></div>
+
+      <div class="input-row">
+        <textarea id="user-input" rows="2" placeholder="在此输入你的问题或观点…"></textarea>
+        <button id="submit-btn">发送</button>
+      </div>
+    </div>
+
+    <!-- 右栏：论文撰写 -->
+    <div class="panel-right">
+      <div class="panel-label">▶ 撰写论点</div>
+
+      <div class="essay-instruction">
+        <div class="inst-title">写作要求</div>
+        <p>请你经过深度思考，结合左侧对话内容，将你的<strong>最终论点与完整论证过程</strong>写在下方。
+          请阐明你的立场、支撑理由及反驳观点，论证须具体、有据可依。</p>
+        <span class="word-req">⚠ 字数要求：不低于 450 字</span>
+      </div>
+
+      <div class="word-count-bar">
+        <span>已输入字数：</span>
+        <span id="word-count" class="low">0 字</span>
+      </div>
+
+      <textarea id="essay-area"
+        placeholder="请在此处输入你的论点与论证过程…
+
+建议结构：
+① 明确表达你的立场
+② 提出支撑该立场的论点（最少2-3点）
+③ 结合具体例子或现实情境进行论证
+④ 主动回应可能的反对观点
+⑤ 作出结论"></textarea>
+
+      <div class="essay-btns">
+        <button class="btn-save" id="btn-save">保存</button>
+        <button class="btn-submit-essay" id="btn-submit-essay">提交</button>
+      </div>
+      <div id="essay-status"></div>
+    </div>
+  </div>
+
+  <footer>学习研究平台 · 仅供研究使用</footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     弹窗：字数不足
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-wordcount">
+  <div class="modal-box">
+    <div class="modal-icon">✏️</div>
+    <div class="modal-title">字数不足</div>
+    <div class="modal-body">
+      您输入的字数不满 450 字，<br>请您深入思考，继续产出～
+    </div>
+    <button class="modal-btn" id="modal-close">继续写作</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     提交成功全屏页
+══════════════════════════════════════════ -->
+<div id="success-screen">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">段落提交成功！</div>
+  <div class="success-sub">您的交互任务已经完成。<br>感谢您的参与！</div>
+</div>
+
+<script>
+  // ════════════════════════════════════════════════════════════
+  // 配置
+  // ════════════════════════════════════════════════════════════
+  //const SERVER_URL = 'http://localhost:3001';
+  const SERVER_URL = 'https://47.86.177.65:3001'; const 
+  const MIN_CHARS  = 450;
+
+  const GROUP_CFG = {
+    A: {
+      limit: 999,
+      task:  `人工智能技术正在快速进入教育领域。有人认为 AI 能扩大优质教育资源的获取机会，从而促进教育公平；也有人认为 AI 可能进一步扩大不同学生之间的差距。你认为人工智能会促进还是削弱教育公平？
+      请完成一篇短篇论证文章，并确保包含以下要素：
+① 明确表达你的立场
+② 提出支撑该立场的论点（最少2-3点）
+③ 结合具体例子或现实情境进行论证
+④ 主动回应可能的反对观点
+⑤ 作出结论，对文章结构与表达进行整体优化，使论证更加清晰连`,
+    },
+    B: {
+      limit: 4,
+      task: `人工智能技术正在快速进入教育领域。有人认为 AI 能扩大优质教育资源的获取机会，从而促进教育公平；也有人认为 AI 可能进一步扩大不同学生之间的差距。你认为人工智能会促进还是削弱教育公平？
+      请完成一篇短篇论证文章，并确保包含以下要素：
+① 明确表达你的立场
+② 提出支撑该立场的论点（最少2-3点）
+③ 结合具体例子或现实情境进行论证
+④ 主动回应可能的反对观点
+⑤ 作出结论，对文章结构与表达进行整体优化，使论证更加清晰连`,
+    }
+  };
+
+  // ── 状态 ──────────────────────────────────────────────────
+  let pid             = null;
+  let group           = null;   // 'A' | 'B'
+  //let sessionId       = crypto.randomUUID();
+  let sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  let submissionsLeft = 999;
+  let isLoading       = false;
+  let essaySubmitted  = false;
+  let draftTimer      = null;
+
+  // ── DOM ───────────────────────────────────────────────────
+  const loginScreen   = document.getElementById('login-screen');
+  const groupScreen   = document.getElementById('group-screen');
+  const chatScreen    = document.getElementById('chat-screen');
+
+  const pidInput      = document.getElementById('pid-input');
+  const loginBtn      = document.getElementById('login-btn');
+  const loginError    = document.getElementById('login-error');
+
+  const btnGroupA     = document.getElementById('btn-group-a');
+  const btnGroupB     = document.getElementById('btn-group-b');
+  const groupError    = document.getElementById('group-error');
+
+  const pidBadge      = document.getElementById('pid-badge');
+  const taskText      = document.getElementById('task-text');
+  const chatWindow    = document.getElementById('chat-window');
+  const chatEmpty     = document.getElementById('chat-empty');
+  const userInput     = document.getElementById('user-input');
+  const submitBtn     = document.getElementById('submit-btn');
+  const counterBar    = document.getElementById('counter-bar');
+  const pipsEl        = document.getElementById('pips');
+  const countLabel    = document.getElementById('count-label');
+  const statusBar     = document.getElementById('status-bar');
+
+  const essayArea     = document.getElementById('essay-area');
+  const wordCountEl   = document.getElementById('word-count');
+  const btnSave       = document.getElementById('btn-save');
+  const btnSubmit     = document.getElementById('btn-submit-essay');
+  const essayStatus   = document.getElementById('essay-status');
+
+  const modalWordcount = document.getElementById('modal-wordcount');
+  const modalClose     = document.getElementById('modal-close');
+  const successScreen  = document.getElementById('success-screen');
+
+  // ════════════════════════════════════════════════════════════
+  // 日志（sendBeacon，不阻塞 UI）
+  // ════════════════════════════════════════════════════════════
+  function logEvent(eventType, detail = {}) {
+    if (!pid) return;
+    navigator.sendBeacon(
+      `${SERVER_URL}/api/log`,
+      new Blob([JSON.stringify({
+        pid, sessionId, group, eventType,
+        timestamp: new Date().toISOString(),
+        taskId: group ? GROUP_CFG[group].task.slice(0, 10) : 'unknown',
+        ...detail
+      })], { type: 'application/json' })
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // 登录
+  // ════════════════════════════════════════════════════════════
+  async function doLogin() {
+    const rawPid = pidInput.value.trim().toUpperCase();
+    if (!rawPid) return;
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = '验证中…';
+    loginError.style.display = 'none';
+
+    try {
+      const res  = await fetch(`${SERVER_URL}/api/status?pid=${encodeURIComponent(rawPid)}`);
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        showLoginError(data.error || '编号无效，请联系研究人员。');
+        return;
+      }
+
+      pid = rawPid;
+      pidBadge.textContent = '参与者：' + pid;
+
+      // 如果已经选过组，直接进入聊天
+      if (data.group) {
+        group = data.group;
+        submissionsLeft = data.remaining;
+        enterChat();
+      } else {
+        // 跳转到选组页
+        loginScreen.style.display = 'none';
+        groupScreen.style.display = 'flex';
+      }
+    } catch (err) {
+      showLoginError('无法连接服务器，请检查网络后重试。');
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = '进入';
+    }
+  }
+
+  function showLoginError(msg) {
+    loginError.textContent = msg;
+    loginError.style.display = 'block';
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  pidInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  // ════════════════════════════════════════════════════════════
+  // 选组
+  // ════════════════════════════════════════════════════════════
+  async function selectGroup(g) {
+    btnGroupA.disabled = true;
+    btnGroupB.disabled = true;
+    groupError.style.display = 'none';
+
+    try {
+      const res  = await fetch(`${SERVER_URL}/api/select-group`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pid, group: g, sessionId })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        groupError.textContent = data.error || '选组失败，请重试。';
+        groupError.style.display = 'block';
+        btnGroupA.disabled = false;
+        btnGroupB.disabled = false;
+        return;
+      }
+
+      group           = data.group;
+      submissionsLeft = data.remaining;
+      enterChat();
+
+    } catch (err) {
+      groupError.textContent = '无法连接服务器，请重试。';
+      groupError.style.display = 'block';
+      btnGroupA.disabled = false;
+      btnGroupB.disabled = false;
+    }
+  }
+
+  btnGroupA.addEventListener('click', () => selectGroup('A'));
+  btnGroupB.addEventListener('click', () => selectGroup('B'));
+
+  // ════════════════════════════════════════════════════════════
+  // 进入聊天界面
+  // ════════════════════════════════════════════════════════════
+  function enterChat() {
+    loginScreen.style.display = 'none';
+    groupScreen.style.display = 'none';
+    chatScreen.style.display  = 'flex';
+
+    // 设置题目
+    taskText.innerHTML = GROUP_CFG[group].task;
+
+    // B 组显示计数器；A 组不显示
+    if (group === 'B') {
+      counterBar.style.display = 'flex';
+      buildPips();
+    }
+
+    updateChatUI();
+    logEvent('login', { group, remaining: submissionsLeft });
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // 聊天 UI 状态
+  // ════════════════════════════════════════════════════════════
+  function buildPips() {
+    pipsEl.innerHTML = '';
+    const total = GROUP_CFG[group].limit;
+    for (let i = 0; i < total; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'pip';
+      pip.id = `pip-${i}`;
+      pipsEl.appendChild(pip);
+    }
+  }
+
+  function updateChatUI() {
+    if (group === 'B') {
+      const total = GROUP_CFG[group].limit;
+      document.querySelectorAll('.pip').forEach((pip, i) => {
+        pip.classList.toggle('used', i >= submissionsLeft);
+      });
+      countLabel.textContent = submissionsLeft + ' 次';
+
+      if (submissionsLeft <= 0) {
+        submitBtn.disabled = true;
+        userInput.disabled = true;
+        submitBtn.textContent = '已达上限';
+      } else {
+        submitBtn.disabled = false;
+        userInput.disabled = false;
+        submitBtn.textContent = '发送';
+      }
+    }
+    // A 组无限制，按钮始终正常
+  }
+
+  function showStatus(msg) {
+    statusBar.textContent    = msg;
+    statusBar.style.display  = msg ? 'block' : 'none';
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // 聊天消息
+  // ════════════════════════════════════════════════════════════
+  function appendMessage(role, text) {
+    if (chatEmpty) chatEmpty.style.display = 'none';
+    const msg    = document.createElement('div');
+    msg.className = 'msg ' + role;
+    const avatar  = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = role === 'user' ? '🧑' : '▦';
+    const bubble  = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    chatWindow.appendChild(msg);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  function showTyping() {
+    if (chatEmpty) chatEmpty.style.display = 'none';
+    const msg = document.createElement('div');
+    msg.className = 'msg ai'; msg.id = 'typing-indicator';
+    const av = document.createElement('div');
+    av.className = 'msg-avatar'; av.textContent = '▦';
+    const bu = document.createElement('div');
+    bu.className = 'msg-bubble typing-dots';
+    bu.innerHTML = '<span>●</span><span>●</span><span>●</span>';
+    msg.appendChild(av); msg.appendChild(bu);
+    chatWindow.appendChild(msg);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+  function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
+
+  // ════════════════════════════════════════════════════════════
+  // 发送消息
+  // ════════════════════════════════════════════════════════════
+  async function handleSubmit() {
+    const text = userInput.value.trim();
+    if (!text || isLoading || !pid || !group) return;
+    if (group === 'B' && submissionsLeft <= 0) return;
+
+    isLoading = true;
+    submitBtn.disabled = true;
+    showStatus('');
+    logEvent('button_click', { messageLength: text.length });
+
+    appendMessage('user', text);
+    userInput.value = '';
+    userInput.style.height = 'auto';
+    showTyping();
+
+    const t0 = Date.now();
+    try {
+      const res  = await fetch(`${SERVER_URL}/api/chat`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pid, sessionId, message: text, group })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        removeTyping();
+        appendMessage('ai', '⚠ ' + (data.error || '请求失败，请重试。'));
+        if (typeof data.remaining === 'number') submissionsLeft = data.remaining;
+        updateChatUI(); showStatus(data.error || '');
+        return;
+      }
+
+      if (group === 'B') submissionsLeft = data.remaining;
+      removeTyping();
+      appendMessage('ai', data.reply);
+      updateChatUI();
+
+      logEvent('response', {
+        userMessage: text, aiResponse: data.reply,
+        latencyMs: Date.now() - t0,
+        submissionN: GROUP_CFG[group].limit - (group === 'B' ? data.remaining : 0),
+      });
+
+    } catch (err) {
+      removeTyping();
+      appendMessage('ai', '⚠ 网络错误，请检查连接后重试。');
+      showStatus('无法连接服务器');
+    } finally {
+      isLoading = false;
+      if (group === 'A' || submissionsLeft > 0) submitBtn.disabled = false;
+    }
+  }
+
+  submitBtn.addEventListener('click', handleSubmit);
+  userInput.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') handleSubmit();
+  });
+  userInput.addEventListener('focus', () => logEvent('input_focus'));
+  userInput.addEventListener('paste', e => {
+    logEvent('paste', { pastedLength: (e.clipboardData?.getData('text') || '').length });
+  });
+
+  let typingTimer = null;
+  userInput.addEventListener('input', () => {
+    userInput.style.height = 'auto';
+    userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => logEvent('typing_activity', { inputLength: userInput.value.length }), 5000);
+  });
+
+  // ════════════════════════════════════════════════════════════
+  // 论文区：字数统计
+  // ════════════════════════════════════════════════════════════
+  function countChars(str) { return str.replace(/\s+/g, '').length; }
+
+  function updateWordCount() {
+    const n = countChars(essayArea.value);
+    wordCountEl.textContent = n + ' 字';
+    wordCountEl.className   = n >= MIN_CHARS ? 'ok' : 'low';
+  }
+
+  essayArea.addEventListener('input', () => {
+    updateWordCount();
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(() => sendEssay('essay_draft'), 10000);
+  });
+
+  // ── 保存草稿 ─────────────────────────────────────────────
+  btnSave.addEventListener('click', async () => {
+    if (!pid || essaySubmitted) return;
+    if (!essayArea.value.trim()) { setEssayStatus('请先输入内容再保存。', 'error'); return; }
+    await sendEssay('essay_draft');
+    setEssayStatus('草稿已保存', 'success');
+    setTimeout(() => setEssayStatus('', ''), 3000);
+  });
+
+  // ── 最终提交 ─────────────────────────────────────────────
+  btnSubmit.addEventListener('click', async () => {
+    if (!pid || essaySubmitted) return;
+
+    // 字数检查 → 弹窗
+    if (countChars(essayArea.value) < MIN_CHARS) {
+      modalWordcount.classList.add('active');
+      return;
+    }
+
+    // 确认提交
+    const ok = confirm('确认最终提交？提交后将无法修改。');
+    if (!ok) return;
+
+    await sendEssay('essay_final');
+    essaySubmitted = true;
+    essayArea.disabled   = true;
+    btnSave.disabled     = true;
+    btnSubmit.disabled   = true;
+    logEvent('essay_submitted', { charCount: countChars(essayArea.value) });
+
+    // 显示成功全屏页
+    successScreen.style.display = 'flex';
+  });
+
+  // 关闭字数不足弹窗
+  modalClose.addEventListener('click', () => {
+    modalWordcount.classList.remove('active');
+    essayArea.focus();
+  });
+
+  // ── 发送论文到服务器 ─────────────────────────────────────
+  async function sendEssay(eventType) {
+    if (!pid) return;
+    try {
+      await fetch(`${SERVER_URL}/api/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({
+          pid, sessionId, group, eventType,
+          timestamp: new Date().toISOString(),
+          essayContent: essayArea.value,
+          charCount: countChars(essayArea.value),
+          isFinal: eventType === 'essay_final',
+        })
+      });
+    } catch (e) {
+      setEssayStatus('保存失败，请检查网络。', 'error');
+    }
+  }
+
+  function setEssayStatus(msg, type) {
+    essayStatus.textContent = msg;
+    essayStatus.className   = type;
+  }
+
+  // ── 返回选组页 ────────────────────────────────────────────
+  document.getElementById('btn-back-home').addEventListener('click', () => {
+    const ok = confirm('确定返回选组页面吗？当前对话记录将保留在服务器，但页面会重置。');
+    if (!ok) return;
+
+    // 重置前端状态
+    group           = null;
+    submissionsLeft = 999;
+    isLoading       = false;
+    essaySubmitted  = false;
+
+    // 清空聊天窗口
+    chatWindow.innerHTML = '<div class="chat-empty" id="chat-empty"><span class="pixel-icon">▦</span><span>输入你的问题开始对话</span></div>';
+    essayArea.value  = '';
+    essayArea.disabled = false;
+    btnSave.disabled   = false;
+    btnSubmit.disabled = false;
+    userInput.value  = '';
+    userInput.disabled = false;
+    submitBtn.textContent = '发送';
+    submitBtn.disabled = false;
+    counterBar.style.display = 'none';
+    pipsEl.innerHTML = '';
+    successScreen.style.display = 'none';
+    setEssayStatus('', '');
+    updateWordCount();
+    showStatus('');
+
+    // 跳回选组页
+    chatScreen.style.display  = 'none';
+    btnGroupA.disabled = false;
+    btnGroupB.disabled = false;
+    groupError.style.display = 'none';
+    groupScreen.style.display = 'flex';
+  });
+</script>
+</body>
+</html>
