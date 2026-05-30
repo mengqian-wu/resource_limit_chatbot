@@ -1,1 +1,9 @@
 {"pid":"P001","sessionId":"ywzfc5h23zmpog2wef","eventType":"group_selected","group":"B","timestamp":"2026-05-27T19:16:21.654Z"}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","eventType":"group_selected","group":"B","timestamp":"2026-05-28T20:08:27.456Z"}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","group":"B","taskId":"task_b","eventType":"submission","submissionN":1,"timestamp":"2026-05-28T20:08:52.257Z","userMessage":"这个问题很有意思，我觉得短期会削弱教育公平，长期会更好，你觉得呢？","aiResponse":"你的思考很有层次感！短期与长期的区分确实很关键。我想到一个例子：疫情期间的线上教学，很多农村学生因设备或网络问题无法参与，这确实在短期内拉大了差距。但长期看，如果基础设施改善，AI或许能让每个孩子都拥有“私人教师”。你觉得这个例子支持你的观点吗？","latencyMs":2996,"remaining":3}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","group":"B","taskId":"unknown","eventType":"essay_draft","timestamp":"2026-05-28T20:09:08.747Z","essayContent":"短期与长期的区分确实很关键，短期可能会削弱教育公平！","charCount":26,"isFinal":false}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","group":"B","taskId":"unknown","eventType":"essay_draft","timestamp":"2026-05-28T20:09:10.634Z","essayContent":"短期与长期的区分确实很关键，短期可能会削弱教育公平！","charCount":26,"isFinal":false}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","group":"B","taskId":"unknown","eventType":"essay_draft","timestamp":"2026-05-28T20:09:11.602Z","essayContent":"短期与长期的区分确实很关键，短期可能会削弱教育公平！","charCount":26,"isFinal":false}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","group":"B","taskId":"unknown","eventType":"essay_draft","timestamp":"2026-05-28T20:09:12.212Z","essayContent":"短期与长期的区分确实很关键，短期可能会削弱教育公平！","charCount":26,"isFinal":false}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","group":"B","taskId":"unknown","eventType":"essay_draft","timestamp":"2026-05-28T20:09:14.251Z","essayContent":"短期与长期的区分确实很关键，短期可能会削弱教育公平！","charCount":26,"isFinal":false}
+{"pid":"P001","sessionId":"fv35ecbirccmppxdy1q","group":null,"taskId":"unknown","eventType":"essay_draft","timestamp":"2026-05-28T20:09:59.339Z","essayContent":"","charCount":0,"isFinal":false}
