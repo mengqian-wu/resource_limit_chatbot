@@ -29,28 +29,38 @@ const GROUP_CONFIG = {
   A: {
     limit: 100,   // Unlimited interaction 
     taskId: 'task_a',
-    systemPrompt: `你是一位教育研究领域的学习助手，正在协助一项关于生成式人工智能与教育公平的研究。当前讨论题目：人工智能技术正在快速进入教育领域。有人认为 AI 能扩大优质教育资源的获取机会，从而促进教育公平；也有人认为 AI 可能进一步扩大不同学生之间的差距。你认为人工智能会促进还是削弱教育公平？
-你的角色：
-- 用中文回答，语气亲切、启发性强，鼓励学生深入思考
-- 尽量不要经常提问
-- 每次回答不超过 200 字，简洁有力`
+    systemPrompt: `你是一位教育研究领域的学习助手，正在协助一项关于生成式人工智能与教育公平的研究。
+
+当前讨论题目：人工智能技术正在快速进入教育领域。有人认为 AI 能扩大优质教育资源的获取机会，从而促进教育公平；也有人认为 AI 可能进一步扩大不同学生之间的差距。
+
+你的回答规则（必须严格遵守）：
+1. 只用中文回答，语气亲切、有启发性
+2. 每次回答不超过200字
+3. 严禁在回答末尾提问，严禁使用问号结尾
+4. 严禁反问学生，严禁要求学生分享观点
+5. 只提供信息、观点、论据，让学生自己思考`
   },
   B: {
     limit: 4,     // At most 4 times for interaction 
     taskId: 'task_b',
-    systemPrompt: `你是一位教育研究领域的学习助手，正在协助一项关于生成式人工智能与教育公平的研究。当前讨论题目：人工智能技术正在快速进入教育领域。有人认为 AI 能扩大优质教育资源的获取机会，从而促进教育公平；也有人认为 AI 可能进一步扩大不同学生之间的差距。你认为人工智能会促进还是削弱教育公平？
-你的角色：
-- 用中文回答，语气亲切、启发性强，鼓励学生深入思考
-- 尽量不要经常提问
-- 每次回答不超过 200 字，简洁有力`
+    systemPrompt: `你是一位教育研究领域的学习助手，正在协助一项关于生成式人工智能与教育公平的研究。
+
+当前讨论题目：人工智能技术正在快速进入教育领域。有人认为 AI 能扩大优质教育资源的获取机会，从而促进教育公平；也有人认为 AI 可能进一步扩大不同学生之间的差距。
+
+你的回答规则（必须严格遵守）：
+1. 只用中文回答，语气亲切、有启发性
+2. 每次回答不超过200字
+3. 严禁在回答末尾提问，严禁使用问号结尾
+4. 严禁反问学生，严禁要求学生分享观点
+5. 只提供信息、观点、论据，让学生自己思考`
   }
 };
 
 // ════════════════════════════════════════════════════════════
-// 参与者注册表（P01–P200）
+// 参与者注册表（P01–P300）
 // ════════════════════════════════════════════════════════════
 const VALID_PIDS = new Set(
-  Array.from({ length: 200 }, (_, i) => 'P' + String(i + 1).padStart(3, '0'))
+  Array.from({ length: 300 }, (_, i) => 'P' + String(i + 1).padStart(3, '0'))
 );
 
 // 内存状态：pid → { group: 'A'|'B'|null, remaining: number }
@@ -184,8 +194,13 @@ app.post('/api/chat', async (req, res) => {
   const reqStart    = Date.now();
 
   let reply = '';
+  let tokenUsage = {};
+
   try {
-    reply = await limit(() => callDeepSeek(message, config.systemPrompt));
+    //reply = await limit(() => callDeepSeek(message, config.systemPrompt));
+    const result = await limit(() => callDeepSeek(message, config.systemPrompt));
+    reply = result.reply;
+    tokenUsage = result.usage;
   } catch (err) {
     state.remaining++;
     console.error(`[API ERROR] ${cleanPid}:`, err.message);
@@ -205,6 +220,10 @@ app.post('/api/chat', async (req, res) => {
     aiResponse: reply,
     latencyMs,
     remaining: state.group === 'B' ? state.remaining : '无限制',
+    //add token usage
+    promptTokens:     tokenUsage.prompt_tokens     || 0,
+    completionTokens: tokenUsage.completion_tokens || 0,
+    totalTokens:      tokenUsage.total_tokens      || 0,
   });
 
   console.log(`[CHAT] ${cleanPid} 组别${state.group} 第${submissionN}次 | ${latencyMs}ms | 剩余${state.group === 'B' ? state.remaining : '∞'}`);
@@ -285,8 +304,15 @@ async function callDeepSeek(userMessage, systemPrompt) {
     throw new Error(`DeepSeek ${response.status}: ${body}`);
   }
 
+  // const data = await response.json();
+  // return data.choices?.[0]?.message?.content || '（无回复）';
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || '（无回复）';
+
+  // 返回内容和token使用量
+  return {
+    reply: data.choices?.[0]?.message?.content || '（无回复）',
+    usage: data.usage || {}
+  };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -295,7 +321,7 @@ async function callDeepSeek(userMessage, systemPrompt) {
 app.listen(PORT, () => {
   console.log(`\n🟧 研究服务器启动  →  http://localhost:${PORT}`);
   console.log(`   DeepSeek Key:    ${!!process.env.DEEPSEEK_API_KEY}`);
-  console.log(`   参与者 ID:        P01 – P200（共 ${VALID_PIDS.size} 个）`);
+  console.log(`   参与者 ID:        P01 – P300（共 ${VALID_PIDS.size} 个）`);
   console.log(`   A 组限制:         无限制`);
   console.log(`   B 组限制:         4 次\n`);
 });
