@@ -57,10 +57,10 @@ const GROUP_CONFIG = {
 };
 
 // ════════════════════════════════════════════════════════════
-// 参与者注册表（P01–P300）
+// 参与者注册表（P01–P600）
 // ════════════════════════════════════════════════════════════
 const VALID_PIDS = new Set(
-  Array.from({ length: 300 }, (_, i) => 'P' + String(i + 1).padStart(3, '0'))
+  Array.from({ length: 600 }, (_, i) => 'P' + String(i + 1).padStart(3, '0'))
 );
 
 // 内存状态：pid → { group: 'A'|'B'|null, remaining: number }
@@ -321,7 +321,7 @@ async function callDeepSeek(userMessage, systemPrompt) {
 app.listen(PORT, () => {
   console.log(`\n🟧 研究服务器启动  →  http://localhost:${PORT}`);
   console.log(`   DeepSeek Key:    ${!!process.env.DEEPSEEK_API_KEY}`);
-  console.log(`   参与者 ID:        P01 – P300（共 ${VALID_PIDS.size} 个）`);
+  console.log(`   参与者 ID:        P01 – P600（共 ${VALID_PIDS.size} 个）`);
   console.log(`   A 组限制:         无限制`);
   console.log(`   B 组限制:         4 次\n`);
 });
